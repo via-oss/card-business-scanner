@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>名片掃描器 | 雲端共享名片資料庫</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -40,13 +40,13 @@
 
       <div class="flex flex-wrap items-center gap-2.5">
         <!-- Google Sheets 連線設定按鈕 -->
-        <button id="btnOpenConfig" onclick="openConfigModal()" class="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium border transition-all bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100">
+        <button type="button" id="btnOpenConfig" onclick="openConfigModal()" class="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium border transition-all bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100">
           <span id="statusDot" class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
           <span id="statusText">已連線 Google 試算表</span>
         </button>
 
         <!-- 匯出 Excel 按鈕 -->
-        <button onclick="exportToExcel()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition-all">
+        <button type="button" onclick="exportToExcel()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition-all">
           <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
           <span>匯出 Excel (.xlsx)</span>
         </button>
@@ -81,7 +81,7 @@
             </div>
 
             <!-- 即時相機畫面 -->
-            <video id="cameraVideo" class="hidden w-full h-full object-cover" autoplay playsinline></video>
+            <video id="cameraVideo" class="hidden w-full h-full object-cover" autoplay playsinline muted></video>
             <div id="cameraGuide" class="hidden absolute inset-6 border-2 border-dashed border-white/80 rounded-lg pointer-events-none scanner-frame flex items-end justify-center pb-2">
               <span class="text-[11px] text-white bg-black/50 px-2 py-0.5 rounded">請將名片對準框線內</span>
             </div>
@@ -99,17 +99,17 @@
 
           <!-- 相機與上傳操作按鈕 -->
           <div class="grid grid-cols-2 gap-2.5 mt-3">
-            <button id="btnStartCamera" onclick="startCamera()" class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 px-3 rounded-xl text-sm font-semibold transition-all">
+            <button type="button" id="btnStartCamera" onclick="startCamera()" class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white py-2.5 px-3 rounded-xl text-sm font-semibold transition-all touch-manipulation">
               <i data-lucide="camera" class="w-4 h-4"></i>
               <span>開啟相機</span>
             </button>
 
-            <button id="btnCapture" onclick="capturePhoto()" class="hidden flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white py-2.5 px-3 rounded-xl text-sm font-semibold transition-all animate-pulse">
+            <button type="button" id="btnCapture" onclick="capturePhoto()" class="hidden flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white py-2.5 px-3 rounded-xl text-sm font-semibold transition-all animate-pulse touch-manipulation">
               <i data-lucide="aperture" class="w-4 h-4"></i>
               <span>立即拍照辨識</span>
             </button>
 
-            <label class="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 px-3 rounded-xl text-sm font-semibold cursor-pointer transition-all border border-slate-300">
+            <label class="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 py-2.5 px-3 rounded-xl text-sm font-semibold cursor-pointer transition-all border border-slate-300 touch-manipulation">
               <i data-lucide="image-plus" class="w-4 h-4"></i>
               <span>上傳名片照片</span>
               <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFileUpload(event)" />
@@ -124,7 +124,7 @@
               <i data-lucide="file-text" class="w-3.5 h-3.5 text-slate-400"></i>
               <span>原始辨識文字 (方便對照複製)</span>
             </label>
-            <button onclick="reparseRawText()" class="text-xs text-blue-600 hover:underline font-medium">重新自動分類</button>
+            <button type="button" onclick="reparseRawText()" class="text-xs text-blue-600 hover:underline font-medium">重新自動分類</button>
           </div>
           <textarea id="rawOcrText" rows="5" placeholder="掃描後的原始文字會顯示在此處，若自動分類有誤差，可直接從這裡複製貼上到右側欄位..." class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
         </div>
@@ -140,7 +140,7 @@
             </h2>
             <p class="text-xs text-slate-500 mt-0.5">請檢查系統自動填入的內容，確認無誤後點擊「儲存聯絡人」</p>
           </div>
-          <button onclick="resetForm()" class="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-slate-100">
+          <button type="button" onclick="resetForm()" class="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-slate-100">
             <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
             <span>清空重填</span>
           </button>
@@ -237,7 +237,7 @@
             <span>已儲存名片清單</span>
           </h2>
           <span id="totalBadge" class="bg-slate-100 text-slate-700 text-xs font-bold px-2.5 py-1 rounded-full">0 筆</span>
-          <button onclick="fetchContactsFromCloud()" title="重新從雲端同步最新資料" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+          <button type="button" onclick="fetchContactsFromCloud()" title="重新從雲端同步最新資料" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
             <i data-lucide="refresh-cw" id="refreshIcon" class="w-4 h-4"></i>
           </button>
         </div>
@@ -284,7 +284,7 @@
           <i data-lucide="sheet" class="w-5 h-5 text-emerald-600"></i>
           <span>連結 Google 試算表 (團隊共享資料庫)</span>
         </h3>
-        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-700">
+        <button type="button" onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-700">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
@@ -299,8 +299,8 @@
       </div>
 
       <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
-        <button onclick="closeConfigModal()" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg font-medium">關閉</button>
-        <button onclick="saveSheetConfig()" class="px-5 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow-sm">儲存並同步</button>
+        <button type="button" onclick="closeConfigModal()" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg font-medium">關閉</button>
+        <button type="button" onclick="saveSheetConfig()" class="px-5 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow-sm">儲存並同步</button>
       </div>
     </div>
   </div>
@@ -314,18 +314,16 @@
   <canvas id="captureCanvas" class="hidden"></canvas>
 
   <script>
-    // 初始化圖示
-    lucide.createIcons();
+    if (window.lucide) {
+      lucide.createIcons();
+    }
 
-    // 預設已內建您的公司 Google Apps Script 網址
     const DEFAULT_SHEET_URL = 'https://script.google.com/a/macros/supersocks.com.tw/s/AKfycbxD5GlHlgFWK8ZJERv8soWOKqKTePvq6wvYvIDw0P38H6vook5ZdNGLT7cOzUMGqh2bSA/exec';
 
-    // 全域狀態
     let contacts = JSON.parse(localStorage.getItem('business_cards_backup') || '[]');
     let sheetApiUrl = localStorage.getItem('google_sheet_webapp_url') || DEFAULT_SHEET_URL;
     let cameraStream = null;
 
-    // 頁面載入初始化
     window.addEventListener('DOMContentLoaded', () => {
       updateConnectionBadge();
       if (sheetApiUrl) {
@@ -342,7 +340,6 @@
       setTimeout(() => toast.classList.add('hidden'), 3200);
     }
 
-    // ================= Google Sheets 連線管理 =================
     function updateConnectionBadge() {
       const btn = document.getElementById('btnOpenConfig');
       const dot = document.getElementById('statusDot');
@@ -383,12 +380,12 @@
         return;
       }
       const icon = document.getElementById('refreshIcon');
-      icon.classList.add('animate-spin');
+      if (icon) icon.classList.add('animate-spin');
       try {
         const res = await fetch(sheetApiUrl);
         const data = await res.json();
         if (Array.isArray(data)) {
-          contacts = data.reverse(); // 最新的排在最前面
+          contacts = data.reverse();
           localStorage.setItem('business_cards_backup', JSON.stringify(contacts));
           renderTable();
           showToast('已與 Google 試算表完成同步');
@@ -398,18 +395,27 @@
         showToast('雲端同步失敗，請確認已登入公司 Google 帳號或網址權限');
         renderTable();
       } finally {
-        icon.classList.remove('animate-spin');
+        if (icon) icon.classList.remove('animate-spin');
       }
     }
 
-    // ================= 相機與圖片上傳處理 =================
     async function startCamera() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('您的瀏覽器不支援直接開啟相機（或目前並非 https 安全連線），請改用右側「上傳名片照片」按鈕直接拍照。');
+        return;
+      }
       try {
-        cameraStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }
-        });
+        try {
+          cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+            audio: false
+          });
+        } catch (e) {
+          cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        }
         const video = document.getElementById('cameraVideo');
         video.srcObject = cameraStream;
+        await video.play();
         video.classList.remove('hidden');
         document.getElementById('cameraGuide').classList.remove('hidden');
         document.getElementById('placeholderState').classList.add('hidden');
@@ -417,7 +423,7 @@
         document.getElementById('btnStartCamera').classList.add('hidden');
         document.getElementById('btnCapture').classList.remove('hidden');
       } catch (err) {
-        alert('無法開啟相機，請確認瀏覽器已允許相機權限，或改用「上傳名片照片」。');
+        alert('無法開啟相機（' + err.message + '）。請確認已允許瀏覽器相機權限，或直接點擊「上傳名片照片」進行拍照。');
       }
     }
 
@@ -435,8 +441,8 @@
     function capturePhoto() {
       const video = document.getElementById('cameraVideo');
       const canvas = document.getElementById('captureCanvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+      canvas.width = video.videoWidth || 1280;
+      canvas.height = video.videoHeight || 720;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
@@ -454,7 +460,6 @@
       event.target.value = '';
     }
 
-    // 影像增強並執行 OCR (繁體中文 + 英文)
     async function displayAndScanImage(imageSrc) {
       const preview = document.getElementById('previewImage');
       preview.src = imageSrc;
@@ -464,4 +469,336 @@
       const loading = document.getElementById('ocrLoading');
       const statusText = document.getElementById('ocrStatusText');
       const progressText = document.getElementById('ocrProgressText');
-      loading.classList
+      loading.classList.remove('hidden');
+
+      try {
+        const processedDataUrl = await preprocessImage(imageSrc);
+        const result = await Tesseract.recognize(processedDataUrl, 'chi_tra+eng', {
+          logger: m => {
+            if (m.status === 'recognizing text') {
+              statusText.textContent = '正在辨識名片文字 (繁體中文 / 英文)...';
+              progressText.textContent = Math.round(m.progress * 100) + '%';
+            } else {
+              statusText.textContent = '載入語言辨識庫中...';
+            }
+          }
+        });
+
+        const rawText = result.data.text;
+        document.getElementById('rawOcrText').value = rawText;
+        autoFillFieldsFromText(rawText);
+        showToast('名片辨識完成！請確認右側欄位內容');
+      } catch (err) {
+        console.error(err);
+        alert('文字辨識發生錯誤，請重新拍攝清晰照片或手動輸入。');
+      } finally {
+        loading.classList.add('hidden');
+      }
+    }
+
+    function preprocessImage(src) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const scale = img.width < 1200 ? 1.5 : 1;
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const d = imgData.data;
+          for (let i = 0; i < d.length; i += 4) {
+            const gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+            const contrast = ((gray - 128) * 1.25) + 128;
+            const val = Math.max(0, Math.min(255, contrast));
+            d[i] = d[i + 1] = d[i + 2] = val;
+          }
+          ctx.putImageData(imgData, 0, 0);
+          resolve(canvas.toDataURL('image/png'));
+        };
+        img.src = src;
+      });
+    }
+
+    function reparseRawText() {
+      const text = document.getElementById('rawOcrText').value;
+      if (text.trim()) {
+        autoFillFieldsFromText(text);
+        showToast('已重新自動分類欄位');
+      }
+    }
+
+    function autoFillFieldsFromText(text) {
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      let company = '', name = '', title = '', mobile = '', officePhone = '', fax = '', email = '', lineId = '', social = '', website = '', address = '';
+
+      const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+      const urlRegex = /(https?:\/\/)?(www\.)?[a-zA-Z0-9-]+\.(com|com\.tw|tw|net|org|io|co|jp|cn)(\.[a-z]{2})?(\/[^\s]*)?/i;
+      const mobileRegex = /(09\d{2}[-\s]?\d{3}[-\s]?\d{3}|\+?886[-\s]?9\d{2}[-\s]?\d{3}[-\s]?\d{3})/;
+      const phoneRegex = /(\(?\d{2,4}\)?[-\s]?\d{3,4}[-\s]?\d{3,4}(\s*(#|ext|分機)\.?\s*\d+)?)/i;
+
+      const titleKeywords = /(總經理|副總|協理|經理|副理|主任|專員|工程師|設計師|顧問|董事|執行長|負責人|業務|代表|CEO|CTO|CFO|COO|Manager|Director|Engineer|Specialist|Supervisor|President|VP|Sales|Consultant)/i;
+      const companyKeywords = /(公司|集團|企業|銀行|事務所|工作室|學院|協會|醫院|Co\.|Ltd|Inc|Corp|Corporation|Limited|Group|Enterprise)/i;
+      const addressKeywords = /(市|縣|區|鄉|鎮|路|街|段|巷|弄|號|樓|室|Road|Rd\.|Street|St\.|Ave|Floor|Fl\.|Taiwan|Taipei|Taichung|Kaohsiung)/i;
+
+      const unmatchedLines = [];
+
+      lines.forEach(line => {
+        if (!email && emailRegex.test(line)) {
+          email = line.match(emailRegex)[0];
+          return;
+        }
+        if (!lineId && /line\s*(id)?[:：\s]/i.test(line)) {
+          lineId = line.replace(/.*line\s*(id)?[:：\s]*/i, '').trim();
+          return;
+        }
+        if (!social && /(facebook|fb|instagram|ig)[:：\s\/]/i.test(line)) {
+          social = line.replace(/^(facebook|fb|instagram|ig)[:：\s]*/i, '').trim();
+          return;
+        }
+        if (!website && urlRegex.test(line) && !line.includes('@')) {
+          website = line.match(urlRegex)[0];
+          return;
+        }
+        if (!fax && /(fax|傳真|f[:：])/i.test(line) && phoneRegex.test(line)) {
+          fax = line.match(phoneRegex)[0];
+          return;
+        }
+        if (!mobile && mobileRegex.test(line)) {
+          mobile = line.match(mobileRegex)[0];
+          return;
+        }
+        if (!officePhone && (/(tel|電話|專線|t[:：])/i.test(line) || phoneRegex.test(line))) {
+          const m = line.match(phoneRegex);
+          if (m) {
+            officePhone = m[0];
+            return;
+          }
+        }
+        if (!address && addressKeywords.test(line) && /\d/.test(line)) {
+          address = line.replace(/^(地址|add|address)[:：\s]*/i, '').trim();
+          return;
+        }
+        if (!company && companyKeywords.test(line)) {
+          company = line;
+          return;
+        }
+        if (!title && titleKeywords.test(line) && line.length < 30) {
+          title = line;
+          return;
+        }
+        unmatchedLines.push(line);
+      });
+
+      if (!name && unmatchedLines.length > 0) {
+        const candidate = unmatchedLines.find(l => l.length >= 2 && l.length <= 24 && !/\d{4}/.test(l));
+        if (candidate) name = candidate;
+      }
+
+      document.getElementById('field_company').value = company;
+      document.getElementById('field_name').value = name;
+      document.getElementById('field_title').value = title;
+      document.getElementById('field_mobile').value = mobile;
+      document.getElementById('field_officePhone').value = officePhone;
+      document.getElementById('field_fax').value = fax;
+      document.getElementById('field_email').value = email;
+      document.getElementById('field_line').value = lineId;
+      document.getElementById('field_social').value = social;
+      document.getElementById('field_website').value = website;
+      document.getElementById('field_address').value = address;
+    }
+
+    async function saveContact(e) {
+      e.preventDefault();
+      const editId = document.getElementById('editId').value;
+      const id = editId || ('CARD-' + Date.now());
+
+      const record = {
+        id: id,
+        company: document.getElementById('field_company').value.trim(),
+        name: document.getElementById('field_name').value.trim(),
+        title: document.getElementById('field_title').value.trim(),
+        mobile: document.getElementById('field_mobile').value.trim(),
+        officePhone: document.getElementById('field_officePhone').value.trim(),
+        fax: document.getElementById('field_fax').value.trim(),
+        email: document.getElementById('field_email').value.trim(),
+        line: document.getElementById('field_line').value.trim(),
+        social: document.getElementById('field_social').value.trim(),
+        website: document.getElementById('field_website').value.trim(),
+        address: document.getElementById('field_address').value.trim()
+      };
+
+      const btn = document.getElementById('btnSaveContact');
+      btn.disabled = true;
+      btn.classList.add('opacity-70');
+
+      const existingIdx = contacts.findIndex(c => String(c.id) === String(id));
+      if (existingIdx >= 0) {
+        contacts[existingIdx] = record;
+      } else {
+        contacts.unshift(record);
+      }
+      localStorage.setItem('business_cards_backup', JSON.stringify(contacts));
+      renderTable();
+
+      if (sheetApiUrl) {
+        try {
+          await fetch(sheetApiUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'upsert', id: record.id, data: record })
+          });
+          showToast('已儲存並同步至 Google 試算表！');
+        } catch (err) {
+          console.error(err);
+          showToast('已暫存本機，但雲端同步發生異常');
+        }
+      }
+
+      btn.disabled = false;
+      btn.classList.remove('opacity-70');
+      resetForm();
+    }
+
+    function editContact(id) {
+      const c = contacts.find(item => String(item.id) === String(id));
+      if (!c) return;
+      document.getElementById('editId').value = c.id;
+      document.getElementById('field_company').value = c.company || '';
+      document.getElementById('field_name').value = c.name || '';
+      document.getElementById('field_title').value = c.title || '';
+      document.getElementById('field_mobile').value = c.mobile || '';
+      document.getElementById('field_officePhone').value = c.officePhone || '';
+      document.getElementById('field_fax').value = c.fax || '';
+      document.getElementById('field_email').value = c.email || '';
+      document.getElementById('field_line').value = c.line || '';
+      document.getElementById('field_social').value = c.social || '';
+      document.getElementById('field_website').value = c.website || '';
+      document.getElementById('field_address').value = c.address || '';
+
+      document.getElementById('btnSaveLabel').textContent = '更新聯絡人資料';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function deleteContact(id) {
+      if (!confirm('確定要刪除這筆名片資料嗎？')) return;
+      contacts = contacts.filter(c => String(c.id) !== String(id));
+      localStorage.setItem('business_cards_backup', JSON.stringify(contacts));
+      renderTable();
+
+      if (sheetApiUrl) {
+        try {
+          await fetch(sheetApiUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete', id: id })
+          });
+          showToast('已從 Google 試算表刪除此筆資料');
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    }
+
+    function resetForm() {
+      document.getElementById('contactForm').reset();
+      document.getElementById('editId').value = '';
+      document.getElementById('btnSaveLabel').textContent = '儲存聯絡人至資料庫';
+    }
+
+    function renderTable() {
+      const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+      const filtered = contacts.filter(c => {
+        if (!keyword) return true;
+        return Object.values(c).some(val => String(val).toLowerCase().includes(keyword));
+      });
+
+      document.getElementById('totalBadge').textContent = `${filtered.length} 筆`;
+      const tbody = document.getElementById('contactsTableBody');
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="12" class="py-10 text-center text-slate-400">
+              ${keyword ? '找不到符合「' + escapeHtml(keyword) + '」的名片資料' : '目前尚無名片資料，請從上方拍攝或上傳第一張名片！'}
+            </td>
+          </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(c => `
+        <tr class="hover:bg-blue-50/50 transition-colors">
+          <td class="py-2.5 px-3.5">
+            <div class="flex items-center gap-1.5">
+              <button type="button" onclick="editContact('${escapeHtml(c.id)}')" class="p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg" title="編輯">
+                <i data-lucide="pencil" class="w-4 h-4"></i>
+              </button>
+              <button type="button" onclick="deleteContact('${escapeHtml(c.id)}')" class="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg" title="刪除">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </td>
+          <td class="py-2.5 px-3.5 font-medium text-slate-900">${escapeHtml(c.company)}</td>
+          <td class="py-2.5 px-3.5 font-bold text-blue-700">${escapeHtml(c.name)}</td>
+          <td class="py-2.5 px-3.5">${escapeHtml(c.title)}</td>
+          <td class="py-2.5 px-3.5">${escapeHtml(c.mobile)}</td>
+          <td class="py-2.5 px-3.5">${escapeHtml(c.officePhone)}</td>
+          <td class="py-2.5 px-3.5">${escapeHtml(c.fax)}</td>
+          <td class="py-2.5 px-3.5 text-blue-600">${escapeHtml(c.email)}</td>
+          <td class="py-2.5 px-3.5">${escapeHtml(c.line)}</td>
+          <td class="py-2.5 px-3.5">${escapeHtml(c.social)}</td>
+          <td class="py-2.5 px-3.5">${escapeHtml(c.website)}</td>
+          <td class="py-2.5 px-3.5">${escapeHtml(c.address)}</td>
+        </tr>
+      `).join('');
+
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function exportToExcel() {
+      if (contacts.length === 0) {
+        alert('目前沒有資料可以匯出！');
+        return;
+      }
+
+      const rows = contacts.map(c => ({
+        '公司名字': c.company || '',
+        '名字(中英文)': c.name || '',
+        '崗位': c.title || '',
+        '私人電話': c.mobile || '',
+        '公司電話': c.officePhone || '',
+        '傳真': c.fax || '',
+        'Email': c.email || '',
+        'Line': c.line || '',
+        'Facebook/IG': c.social || '',
+        '公司官網': c.website || '',
+        '地址': c.address || ''
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, '名片資料庫');
+
+      const today = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(workbook, `名片資料庫_${today}.xlsx`);
+      showToast('已成功匯出 Excel 檔案！');
+    }
+  </script>
+</body>
+</html>
