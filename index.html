@@ -3,14 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>名片掃描器 | 雲端共享名片資料庫</title>
-  <!-- Tailwind CSS -->
+  <title>名片掃描器 | Gemini AI 繁中辨識版</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Tesseract.js v5 (繁體中文 + 英文 OCR) -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <!-- SheetJS (匯出 Excel .xlsx) -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap');
@@ -30,22 +25,20 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-3">
         <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-sm">
-          <i data-lucide="contact" class="w-6 h-6"></i>
+          <i data-lucide="sparkles" class="w-6 h-6"></i>
         </div>
         <div>
-          <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">名片掃描與雲端資料庫</h1>
-          <p class="text-xs text-slate-500">支援繁體中文與英文辨識 • Google 試算表即時同步</p>
+          <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">AI 名片掃描與雲端資料庫</h1>
+          <p class="text-xs text-slate-500">Gemini AI 繁體中文精準辨識 • Google 試算表即時同步</p>
         </div>
       </div>
 
       <div class="flex flex-wrap items-center gap-2.5">
-        <!-- Google Sheets 連線設定按鈕 -->
         <button type="button" id="btnOpenConfig" onclick="openConfigModal()" class="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium border transition-all bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100">
           <span id="statusDot" class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
           <span id="statusText">已連線 Google 試算表</span>
         </button>
 
-        <!-- 匯出 Excel 按鈕 -->
         <button type="button" onclick="exportToExcel()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition-all">
           <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
           <span>匯出 Excel (.xlsx)</span>
@@ -56,8 +49,6 @@
 
   <!-- 主內容區塊 -->
   <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 space-y-6">
-
-    <!-- 上半部：掃描區 + 辨識結果確認表單 -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
       <!-- 左側：相機 / 上傳照片與原始文字 -->
@@ -68,36 +59,30 @@
               <i data-lucide="scan-line" class="w-5 h-5 text-blue-600"></i>
               <span>步驟 1：拍攝或上傳名片</span>
             </h2>
-            <span class="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-medium">繁中 + 英文強化版</span>
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full font-semibold">Gemini AI 引擎</span>
           </div>
 
-          <!-- 畫面預覽容器 -->
           <div class="relative w-full aspect-[16/10] bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center border border-slate-300">
-            <!-- 初始提示 -->
             <div id="placeholderState" class="text-center p-6 text-slate-400">
               <i data-lucide="camera" class="w-12 h-12 mx-auto mb-2 opacity-60"></i>
               <p class="text-sm font-medium text-slate-300">請開啟相機拍攝，或從相簿上傳名片</p>
-              <p class="text-xs mt-1">請將名片水平擺正、避免反光以提升繁中辨識率</p>
+              <p class="text-xs mt-1">AI 自動辨識繁體中文並分類至 11 個欄位</p>
             </div>
 
-            <!-- 即時相機畫面 -->
             <video id="cameraVideo" class="hidden w-full h-full object-cover" autoplay playsinline muted></video>
             <div id="cameraGuide" class="hidden absolute inset-6 border-2 border-dashed border-white/80 rounded-lg pointer-events-none scanner-frame flex items-end justify-center pb-2">
-              <span class="text-[11px] text-white bg-black/50 px-2 py-0.5 rounded">請將名片水平對準框線內</span>
+              <span class="text-[11px] text-white bg-black/50 px-2 py-0.5 rounded">請將名片對準框線內</span>
             </div>
 
-            <!-- 拍攝/上傳後的圖片預覽 -->
             <img id="previewImage" class="hidden w-full h-full object-contain bg-slate-950" alt="名片預覽" />
 
-            <!-- OCR 辨識中遮罩 -->
             <div id="ocrLoading" class="hidden absolute inset-0 bg-slate-900/85 backdrop-blur-sm flex flex-col items-center justify-center text-white p-4 text-center">
-              <div class="w-10 h-10 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mb-3"></div>
-              <p id="ocrStatusText" class="text-sm font-semibold">正在準備繁體中文辨識引擎...</p>
-              <p id="ocrProgressText" class="text-xs text-slate-300 mt-1">首次使用需下載繁中字庫，請稍候...</p>
+              <div class="w-10 h-10 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin mb-3"></div>
+              <p class="text-sm font-semibold">Gemini AI 正在讀取繁體中文與分類欄位...</p>
+              <p class="text-xs text-slate-300 mt-1">約需 2～4 秒，請稍候</p>
             </div>
           </div>
 
-          <!-- 相機與上傳操作按鈕 -->
           <div class="grid grid-cols-2 gap-2.5 mt-3">
             <button type="button" id="btnStartCamera" onclick="startCamera()" class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white py-2.5 px-3 rounded-xl text-sm font-semibold transition-all touch-manipulation">
               <i data-lucide="camera" class="w-4 h-4"></i>
@@ -117,16 +102,12 @@
           </div>
         </div>
 
-        <!-- 原始辨識文字備查區 -->
         <div class="pt-3 border-t border-slate-100">
-          <div class="flex items-center justify-between mb-1.5">
-            <label class="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
-              <i data-lucide="file-text" class="w-3.5 h-3.5 text-slate-400"></i>
-              <span>原始辨識文字 (方便對照複製)</span>
-            </label>
-            <button type="button" onclick="reparseRawText()" class="text-xs text-blue-600 hover:underline font-medium">重新自動分類</button>
-          </div>
-          <textarea id="rawOcrText" rows="5" placeholder="掃描後的繁體中文與英文原始文字會顯示在此處..." class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+          <label class="text-xs font-semibold text-slate-600 flex items-center gap-1.5 mb-1.5">
+            <i data-lucide="file-text" class="w-3.5 h-3.5 text-slate-400"></i>
+            <span>AI 讀取的原始文字 (備查對照)</span>
+          </label>
+          <textarea id="rawOcrText" rows="5" placeholder="Gemini AI 讀取到的名片全文會顯示在此處..." class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
         </div>
       </div>
 
@@ -138,7 +119,7 @@
               <i data-lucide="edit-3" class="w-5 h-5 text-blue-600"></i>
               <span>步驟 2：確認並修正資料</span>
             </h2>
-            <p class="text-xs text-slate-500 mt-0.5">請檢查系統自動填入的內容，確認無誤後點擊「儲存聯絡人」</p>
+            <p class="text-xs text-slate-500 mt-0.5">AI 已自動填入對應欄位，確認無誤後點擊「儲存聯絡人」</p>
           </div>
           <button type="button" onclick="resetForm()" class="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-slate-100">
             <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
@@ -150,74 +131,62 @@
           <input type="hidden" id="editId" value="" />
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            <!-- 1. 公司名字 -->
             <div>
               <label class="block text-xs font-semibold text-slate-700 mb-1">1. 公司名字</label>
               <input type="text" id="field_company" placeholder="例：台積電 / TSMC" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
             </div>
 
-            <!-- 2. 名字(中英文) -->
             <div>
               <label class="block text-xs font-semibold text-slate-700 mb-1">2. 名字 (中英文) <span class="text-rose-500">*</span></label>
               <input type="text" id="field_name" required placeholder="例：陳大文 David Chen" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
             </div>
 
-            <!-- 3. 崗位 -->
             <div>
               <label class="block text-xs font-semibold text-slate-700 mb-1">3. 崗位 / 職稱</label>
               <input type="text" id="field_title" placeholder="例：業務經理 Sales Manager" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
             </div>
 
-            <!-- 4. 私人電話 -->
             <div>
               <label class="block text-xs font-semibold text-slate-700 mb-1">4. 電話號碼 (私人手機)</label>
               <input type="text" id="field_mobile" placeholder="例：0912-345-678" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
             </div>
 
-            <!-- 5. 公司電話 -->
             <div>
               <label class="block text-xs font-semibold text-slate-700 mb-1">5. 電話號碼 (公司電話)</label>
               <input type="text" id="field_officePhone" placeholder="例：02-2345-6789 #123" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
             </div>
 
-            <!-- 6. 傳真 -->
             <div>
               <label class="block text-xs font-semibold text-slate-700 mb-1">6. 傳真 (Fax)</label>
               <input type="text" id="field_fax" placeholder="例：02-2345-6780" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
             </div>
 
-            <!-- 7. Email -->
             <div>
               <label class="block text-xs font-semibold text-slate-700 mb-1">7. Email</label>
               <input type="email" id="field_email" placeholder="例：david@company.com" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
             </div>
 
-            <!-- 8. Line -->
             <div>
               <label class="block text-xs font-semibold text-slate-700 mb-1">8. Line ID</label>
               <input type="text" id="field_line" placeholder="例：david_chen88" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
             </div>
 
-            <!-- 9. Facebook/IG -->
             <div>
               <label class="block text-xs font-semibold text-slate-700 mb-1">9. Facebook / IG</label>
               <input type="text" id="field_social" placeholder="例：fb.com/company 或 @ig_account" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
             </div>
 
-            <!-- 10. 公司官網 -->
             <div>
               <label class="block text-xs font-semibold text-slate-700 mb-1">10. 公司官網</label>
               <input type="text" id="field_website" placeholder="例：www.company.com.tw" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
             </div>
           </div>
 
-          <!-- 11. 地址 (全寬) -->
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">11. 地址</label>
             <input type="text" id="field_address" placeholder="例：台北市信義區松仁路100號10樓" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
           </div>
 
-          <!-- 儲存按鈕 -->
           <div class="pt-2 flex items-center justify-end gap-3">
             <button type="submit" id="btnSaveContact" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-sm transition-all">
               <i data-lucide="save" class="w-4 h-4"></i>
@@ -242,14 +211,12 @@
           </button>
         </div>
 
-        <!-- 關鍵字搜尋框 -->
         <div class="relative w-full sm:w-80">
           <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
           <input type="text" id="searchInput" oninput="renderTable()" placeholder="搜尋姓名、公司、職稱、電話或關鍵字..." class="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
         </div>
       </div>
 
-      <!-- 資料表格 (支援橫向捲動) -->
       <div class="overflow-x-auto border border-slate-200 rounded-xl">
         <table class="w-full text-left border-collapse whitespace-nowrap text-sm">
           <thead>
@@ -268,9 +235,7 @@
               <th class="py-3 px-3.5">地址</th>
             </tr>
           </thead>
-          <tbody id="contactsTableBody" class="divide-y divide-slate-100 text-slate-700">
-            <!-- JS 動態渲染 -->
-          </tbody>
+          <tbody id="contactsTableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
         </table>
       </div>
     </div>
@@ -278,7 +243,7 @@
 
   <!-- Google Sheets 連線設定彈窗 -->
   <div id="configModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl space-y-4">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
           <i data-lucide="sheet" class="w-5 h-5 text-emerald-600"></i>
@@ -290,11 +255,10 @@
       </div>
 
       <div class="space-y-3 text-sm text-slate-600">
-        <p>已預設連結公司 Google Drive 試算表。您與主管在各自手機或電腦掃描的名片，都會即時同步到同一個資料庫中。</p>
-        
+        <p>已預設連結公司 Google Drive 試算表與 Gemini AI 辨識服務。</p>
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Google Apps Script 網頁應用程式網址 (結尾為 /exec)：</label>
-          <input type="url" id="sheetUrlInput" placeholder="https://script.google.com/macros/s/...../exec" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+          <label class="block text-xs font-bold text-slate-700 mb-1">Google Apps Script 網頁應用程式網址 (/exec)：</label>
+          <input type="url" id="sheetUrlInput" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
         </div>
       </div>
 
@@ -314,24 +278,16 @@
   <canvas id="captureCanvas" class="hidden"></canvas>
 
   <script>
-    if (window.lucide) {
-      lucide.createIcons();
-    }
+    if (window.lucide) lucide.createIcons();
 
     const DEFAULT_SHEET_URL = 'https://script.google.com/a/macros/supersocks.com.tw/s/AKfycbxD5GlHlgFWK8ZJERv8soWOKqKTePvq6wvYvIDw0P38H6vook5ZdNGLT7cOzUMGqh2bSA/exec';
-
     let contacts = JSON.parse(localStorage.getItem('business_cards_backup') || '[]');
     let sheetApiUrl = localStorage.getItem('google_sheet_webapp_url') || DEFAULT_SHEET_URL;
     let cameraStream = null;
-    let ocrWorker = null;
 
     window.addEventListener('DOMContentLoaded', () => {
       updateConnectionBadge();
-      if (sheetApiUrl) {
-        fetchContactsFromCloud();
-      } else {
-        renderTable();
-      }
+      fetchContactsFromCloud();
     });
 
     function showToast(msg) {
@@ -349,10 +305,6 @@
         btn.className = "flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium border transition-all bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100";
         dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500";
         text.textContent = "已連線 Google 試算表";
-      } else {
-        btn.className = "flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium border transition-all bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100";
-        dot.className = "w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse";
-        text.textContent = "連結 Google Sheets (未連線)";
       }
     }
 
@@ -369,17 +321,12 @@
       const url = document.getElementById('sheetUrlInput').value.trim();
       sheetApiUrl = url || DEFAULT_SHEET_URL;
       localStorage.setItem('google_sheet_webapp_url', sheetApiUrl);
-      updateConnectionBadge();
       closeConfigModal();
       fetchContactsFromCloud();
-      showToast('已儲存設定，正在同步雲端資料...');
     }
 
     async function fetchContactsFromCloud() {
-      if (!sheetApiUrl) {
-        renderTable();
-        return;
-      }
+      if (!sheetApiUrl) { renderTable(); return; }
       const icon = document.getElementById('refreshIcon');
       if (icon) icon.classList.add('animate-spin');
       try {
@@ -389,11 +336,9 @@
           contacts = data.reverse();
           localStorage.setItem('business_cards_backup', JSON.stringify(contacts));
           renderTable();
-          showToast('已與 Google 試算表完成同步');
         }
       } catch (err) {
         console.error(err);
-        showToast('雲端同步失敗，請確認已登入公司 Google 帳號或網址權限');
         renderTable();
       } finally {
         if (icon) icon.classList.remove('animate-spin');
@@ -402,7 +347,7 @@
 
     async function startCamera() {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert('您的瀏覽器不支援直接開啟相機，請改用右側「上傳名片照片」按鈕直接拍照。');
+        alert('請點擊右側「上傳名片照片」按鈕直接拍照。');
         return;
       }
       try {
@@ -424,7 +369,7 @@
         document.getElementById('btnStartCamera').classList.add('hidden');
         document.getElementById('btnCapture').classList.remove('hidden');
       } catch (err) {
-        alert('無法開啟相機（' + err.message + '）。請確認已允許瀏覽器相機權限，或直接點擊「上傳名片照片」進行拍照。');
+        alert('無法開啟相機，請確認已允許權限或改用「上傳名片照片」。');
       }
     }
 
@@ -446,9 +391,9 @@
       canvas.height = video.videoHeight || 720;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
       stopCamera();
-      displayAndScanImage(dataUrl);
+      displayAndScanWithGemini(dataUrl);
     }
 
     function handleFileUpload(event) {
@@ -456,214 +401,74 @@
       if (!file) return;
       stopCamera();
       const reader = new FileReader();
-      reader.onload = (e) => displayAndScanImage(e.target.result);
+      reader.onload = (e) => displayAndScanWithGemini(e.target.result);
       reader.readAsDataURL(file);
       event.target.value = '';
     }
 
-    // 針對繁體中文筆畫優化的影像前處理與 Tesseract Worker
-    async function displayAndScanImage(imageSrc) {
+    function compressImageForUpload(src) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxDim = 1600;
+          let w = img.width, h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+            else { w = Math.round(w * maxDim / h); h = maxDim; }
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', 0.88));
+        };
+        img.src = src;
+      });
+    }
+
+    async function displayAndScanWithGemini(imageSrc) {
       const preview = document.getElementById('previewImage');
       preview.src = imageSrc;
       preview.classList.remove('hidden');
       document.getElementById('placeholderState').classList.add('hidden');
 
       const loading = document.getElementById('ocrLoading');
-      const statusText = document.getElementById('ocrStatusText');
-      const progressText = document.getElementById('ocrProgressText');
       loading.classList.remove('hidden');
 
       try {
-        statusText.textContent = '正在優化影像解析度與對比...';
-        progressText.textContent = '準備中';
-        const processedDataUrl = await preprocessImageForChinese(imageSrc);
+        const compressedBase64 = await compressImageForUpload(imageSrc);
+        const response = await fetch(sheetApiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'gemini_scan', image: compressedBase64 })
+        });
 
-        if (!ocrWorker) {
-          statusText.textContent = '正在下載繁體中文 + 英文辨識字庫...';
-          ocrWorker = await Tesseract.createWorker(['chi_tra', 'eng'], 1, {
-            langPath: 'https://tessdata.projectnaptha.com/4.0.0',
-            logger: m => {
-              if (m.status === 'loading language traineddata') {
-                statusText.textContent = '下載繁體中文字庫中 (首次約需 5-10 秒)...';
-                progressText.textContent = Math.round((m.progress || 0) * 100) + '%';
-              } else if (m.status === 'recognizing text') {
-                statusText.textContent = '正在辨識繁體中文與英文內容...';
-                progressText.textContent = Math.round((m.progress || 0) * 100) + '%';
-              }
-            }
-          });
-
-          // 設定繁體中文與英文混合版面辨識參數
-          await ocrWorker.setParameters({
-            tessedit_pageseg_mode: '6', // 假設為單一均勻文字區塊，適合名片排版
-            preserve_interword_spaces: '1'
-          });
+        const result = await response.json();
+        if (result.status === 'ok' && result.data) {
+          const d = result.data;
+          document.getElementById('rawOcrText').value = d.rawText || '';
+          document.getElementById('field_company').value = d.company || '';
+          document.getElementById('field_name').value = d.name || '';
+          document.getElementById('field_title').value = d.title || '';
+          document.getElementById('field_mobile').value = d.mobile || '';
+          document.getElementById('field_officePhone').value = d.officePhone || '';
+          document.getElementById('field_fax').value = d.fax || '';
+          document.getElementById('field_email').value = d.email || '';
+          document.getElementById('field_line').value = d.line || '';
+          document.getElementById('field_social').value = d.social || '';
+          document.getElementById('field_website').value = d.website || '';
+          document.getElementById('field_address').value = d.address || '';
+          showToast('Gemini AI 繁體中文辨識與分類完成！');
+        } else {
+          throw new Error(result.message || 'AI 未回傳資料');
         }
-
-        const { data: { text } } = await ocrWorker.recognize(processedDataUrl);
-
-        // 清理繁體中文字符之間多餘的辨識空格（例如「陳 大 文」->「陳大文」），同時保留英文單字間空格
-        const cleanedText = cleanChineseSpacing(text);
-        document.getElementById('rawOcrText').value = cleanedText;
-        autoFillFieldsFromText(cleanedText);
-        showToast('名片辨識完成！請確認右側欄位內容');
       } catch (err) {
-        console.error('OCR Error:', err);
-        // 若 Worker 發生異常則重置以便下次重試
-        if (ocrWorker) {
-          try { await ocrWorker.terminate(); } catch (e) {}
-          ocrWorker = null;
-        }
-        alert('繁體中文辨識連線逾時或發生錯誤，請檢查網路連線後再試一次。');
+        console.error(err);
+        alert('Gemini AI 辨識失敗：' + err.message + '\n請確認 Apps Script 已填入正確的 GEMINI_API_KEY 並部署為新版本。');
       } finally {
         loading.classList.add('hidden');
       }
-    }
-
-    // 去除中文字符之間多餘的空格，但保留中英文之間或英文單字間的空格
-    function cleanChineseSpacing(raw) {
-      return raw
-        .split('\n')
-        .map(line => {
-          // 移除「中文字 + 空白 + 中文字」中間的空白
-          let s = line.replace(/([\u4e00-\u9fa5])\s+(?=[\u4e00-\u9fa5])/g, '$1');
-          return s.trim();
-        })
-        .filter(l => l.length > 0)
-        .join('\n');
-    }
-
-    // 針對繁體中文細筆畫強化的影像放大與灰階對比處理
-    function preprocessImageForChinese(src) {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          // 確保寬度至少達到 1800px，讓繁體中文小字筆畫清晰不糊
-          const targetMinWidth = 1800;
-          const scale = img.width < targetMinWidth ? (targetMinWidth / img.width) : 1;
-          canvas.width = Math.round(img.width * scale);
-          canvas.height = Math.round(img.height * scale);
-
-          const ctx = canvas.getContext('2d');
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const d = imgData.data;
-
-          // 計算平均亮度以自動決定是否反轉深色底名片
-          let totalLum = 0;
-          for (let i = 0; i < d.length; i += 16) {
-            totalLum += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-          }
-          const avgLum = totalLum / (d.length / 16);
-          const isDarkBg = avgLum < 110;
-
-          for (let i = 0; i < d.length; i += 4) {
-            let gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-            if (isDarkBg) gray = 255 - gray; // 深色背景自動反轉為白底黑字
-            // 溫和對比增強 (1.18)，避免吃掉繁體中文細筆畫
-            const contrast = ((gray - 128) * 1.18) + 128;
-            const val = Math.max(0, Math.min(255, contrast));
-            d[i] = d[i + 1] = d[i + 2] = val;
-          }
-          ctx.putImageData(imgData, 0, 0);
-          resolve(canvas.toDataURL('image/png'));
-        };
-        img.src = src;
-      });
-    }
-
-    function reparseRawText() {
-      const text = document.getElementById('rawOcrText').value;
-      if (text.trim()) {
-        autoFillFieldsFromText(text);
-        showToast('已重新自動分類欄位');
-      }
-    }
-
-    function autoFillFieldsFromText(text) {
-      const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      let company = '', name = '', title = '', mobile = '', officePhone = '', fax = '', email = '', lineId = '', social = '', website = '', address = '';
-
-      const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
-      const urlRegex = /(https?:\/\/)?(www\.)?[a-zA-Z0-9-]+\.(com|com\.tw|tw|net|org|io|co|jp|cn)(\.[a-z]{2})?(\/[^\s]*)?/i;
-      const mobileRegex = /(09\d{2}[-\s]?\d{3}[-\s]?\d{3}|\+?886[-\s]?9\d{2}[-\s]?\d{3}[-\s]?\d{3})/;
-      const phoneRegex = /(\(?\d{2,4}\)?[-\s]?\d{3,4}[-\s]?\d{3,4}(\s*(#|ext|分機)\.?\s*\d+)?)/i;
-
-      const titleKeywords = /(總經理|副總|協理|經理|副理|主任|專員|工程師|設計師|顧問|董事|執行長|負責人|業務|代表|廠長|課長|組長|特助|秘書|CEO|CTO|CFO|COO|Manager|Director|Engineer|Specialist|Supervisor|President|VP|Sales|Consultant)/i;
-      const companyKeywords = /(公司|集團|企業|銀行|事務所|工作室|學院|協會|醫院|工廠|實業|科技|國際|貿易|Co\.|Ltd|Inc|Corp|Corporation|Limited|Group|Enterprise)/i;
-      const addressKeywords = /(市|縣|區|鄉|鎮|路|街|段|巷|弄|號|樓|室|Road|Rd\.|Street|St\.|Ave|Floor|Fl\.|Taiwan|Taipei|Taichung|Kaohsiung)/i;
-
-      const unmatchedLines = [];
-
-      lines.forEach(line => {
-        if (!email && emailRegex.test(line)) {
-          email = line.match(emailRegex)[0];
-          return;
-        }
-        if (!lineId && /line\s*(id)?[:：\s]/i.test(line)) {
-          lineId = line.replace(/.*line\s*(id)?[:：\s]*/i, '').trim();
-          return;
-        }
-        if (!social && /(facebook|fb|instagram|ig)[:：\s\/]/i.test(line)) {
-          social = line.replace(/^(facebook|fb|instagram|ig)[:：\s]*/i, '').trim();
-          return;
-        }
-        if (!website && urlRegex.test(line) && !line.includes('@')) {
-          website = line.match(urlRegex)[0];
-          return;
-        }
-        if (!fax && /(fax|傳真|f[:：])/i.test(line) && phoneRegex.test(line)) {
-          fax = line.match(phoneRegex)[0];
-          return;
-        }
-        if (!mobile && mobileRegex.test(line)) {
-          mobile = line.match(mobileRegex)[0];
-          return;
-        }
-        if (!officePhone && (/(tel|電話|專線|總機|t[:：])/i.test(line) || phoneRegex.test(line))) {
-          const m = line.match(phoneRegex);
-          if (m) {
-            officePhone = m[0];
-            return;
-          }
-        }
-        if (!address && addressKeywords.test(line) && /\d/.test(line)) {
-          address = line.replace(/^(地址|add|address)[:：\s]*/i, '').trim();
-          return;
-        }
-        if (!company && companyKeywords.test(line)) {
-          company = line;
-          return;
-        }
-        if (!title && titleKeywords.test(line) && line.length < 30) {
-          title = line;
-          return;
-        }
-        unmatchedLines.push(line);
-      });
-
-      // 優先挑選包含中文字的短行作為姓名
-      if (!name && unmatchedLines.length > 0) {
-        const chineseNameCandidate = unmatchedLines.find(l => /[\u4e00-\u9fa5]{2,4}/.test(l) && l.length <= 20 && !/\d/.test(l));
-        const fallbackCandidate = unmatchedLines.find(l => l.length >= 2 && l.length <= 24 && !/\d{4}/.test(l));
-        name = chineseNameCandidate || fallbackCandidate || '';
-      }
-
-      document.getElementById('field_company').value = company;
-      document.getElementById('field_name').value = name;
-      document.getElementById('field_title').value = title;
-      document.getElementById('field_mobile').value = mobile;
-      document.getElementById('field_officePhone').value = officePhone;
-      document.getElementById('field_fax').value = fax;
-      document.getElementById('field_email').value = email;
-      document.getElementById('field_line').value = lineId;
-      document.getElementById('field_social').value = social;
-      document.getElementById('field_website').value = website;
-      document.getElementById('field_address').value = address;
     }
 
     async function saveContact(e) {
@@ -691,11 +496,9 @@
       btn.classList.add('opacity-70');
 
       const existingIdx = contacts.findIndex(c => String(c.id) === String(id));
-      if (existingIdx >= 0) {
-        contacts[existingIdx] = record;
-      } else {
-        contacts.unshift(record);
-      }
+      if (existingIdx >= 0) contacts[existingIdx] = record;
+      else contacts.unshift(record);
+
       localStorage.setItem('business_cards_backup', JSON.stringify(contacts));
       renderTable();
 
@@ -703,8 +506,7 @@
         try {
           await fetch(sheetApiUrl, {
             method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ action: 'upsert', id: record.id, data: record })
           });
           showToast('已儲存並同步至 Google 試算表！');
@@ -749,8 +551,7 @@
         try {
           await fetch(sheetApiUrl, {
             method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ action: 'delete', id: id })
           });
           showToast('已從 Google 試算表刪除此筆資料');
@@ -812,9 +613,7 @@
         </tr>
       `).join('');
 
-      if (window.lucide) {
-        lucide.createIcons();
-      }
+      if (window.lucide) lucide.createIcons();
     }
 
     function escapeHtml(str) {
@@ -832,7 +631,6 @@
         alert('目前沒有資料可以匯出！');
         return;
       }
-
       const rows = contacts.map(c => ({
         '公司名字': c.company || '',
         '名字(中英文)': c.name || '',
@@ -846,11 +644,9 @@
         '公司官網': c.website || '',
         '地址': c.address || ''
       }));
-
       const worksheet = XLSX.utils.json_to_sheet(rows);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, '名片資料庫');
-
       const today = new Date().toISOString().slice(0, 10);
       XLSX.writeFile(workbook, `名片資料庫_${today}.xlsx`);
       showToast('已成功匯出 Excel 檔案！');
