@@ -6,7 +6,7 @@
   <title>名片掃描器 | 雲端共享名片資料庫</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Tesseract.js (繁體中文 + 英文 OCR) -->
+  <!-- Tesseract.js v5 (繁體中文 + 英文 OCR) -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <!-- SheetJS (匯出 Excel .xlsx) -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -68,7 +68,7 @@
               <i data-lucide="scan-line" class="w-5 h-5 text-blue-600"></i>
               <span>步驟 1：拍攝或上傳名片</span>
             </h2>
-            <span class="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-medium">繁中 + 英文</span>
+            <span class="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-medium">繁中 + 英文強化版</span>
           </div>
 
           <!-- 畫面預覽容器 -->
@@ -77,23 +77,23 @@
             <div id="placeholderState" class="text-center p-6 text-slate-400">
               <i data-lucide="camera" class="w-12 h-12 mx-auto mb-2 opacity-60"></i>
               <p class="text-sm font-medium text-slate-300">請開啟相機拍攝，或從相簿上傳名片</p>
-              <p class="text-xs mt-1">建議保持光線充足、文字清晰</p>
+              <p class="text-xs mt-1">請將名片水平擺正、避免反光以提升繁中辨識率</p>
             </div>
 
             <!-- 即時相機畫面 -->
             <video id="cameraVideo" class="hidden w-full h-full object-cover" autoplay playsinline muted></video>
             <div id="cameraGuide" class="hidden absolute inset-6 border-2 border-dashed border-white/80 rounded-lg pointer-events-none scanner-frame flex items-end justify-center pb-2">
-              <span class="text-[11px] text-white bg-black/50 px-2 py-0.5 rounded">請將名片對準框線內</span>
+              <span class="text-[11px] text-white bg-black/50 px-2 py-0.5 rounded">請將名片水平對準框線內</span>
             </div>
 
             <!-- 拍攝/上傳後的圖片預覽 -->
             <img id="previewImage" class="hidden w-full h-full object-contain bg-slate-950" alt="名片預覽" />
 
             <!-- OCR 辨識中遮罩 -->
-            <div id="ocrLoading" class="hidden absolute inset-0 bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center text-white p-4 text-center">
+            <div id="ocrLoading" class="hidden absolute inset-0 bg-slate-900/85 backdrop-blur-sm flex flex-col items-center justify-center text-white p-4 text-center">
               <div class="w-10 h-10 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mb-3"></div>
-              <p id="ocrStatusText" class="text-sm font-semibold">正在載入繁體中文與英文辨識引擎...</p>
-              <p id="ocrProgressText" class="text-xs text-slate-300 mt-1">0%</p>
+              <p id="ocrStatusText" class="text-sm font-semibold">正在準備繁體中文辨識引擎...</p>
+              <p id="ocrProgressText" class="text-xs text-slate-300 mt-1">首次使用需下載繁中字庫，請稍候...</p>
             </div>
           </div>
 
@@ -126,7 +126,7 @@
             </label>
             <button type="button" onclick="reparseRawText()" class="text-xs text-blue-600 hover:underline font-medium">重新自動分類</button>
           </div>
-          <textarea id="rawOcrText" rows="5" placeholder="掃描後的原始文字會顯示在此處，若自動分類有誤差，可直接從這裡複製貼上到右側欄位..." class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+          <textarea id="rawOcrText" rows="5" placeholder="掃描後的繁體中文與英文原始文字會顯示在此處..." class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
         </div>
       </div>
 
@@ -323,6 +323,7 @@
     let contacts = JSON.parse(localStorage.getItem('business_cards_backup') || '[]');
     let sheetApiUrl = localStorage.getItem('google_sheet_webapp_url') || DEFAULT_SHEET_URL;
     let cameraStream = null;
+    let ocrWorker = null;
 
     window.addEventListener('DOMContentLoaded', () => {
       updateConnectionBadge();
@@ -401,7 +402,7 @@
 
     async function startCamera() {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert('您的瀏覽器不支援直接開啟相機（或目前並非 https 安全連線），請改用右側「上傳名片照片」按鈕直接拍照。');
+        alert('您的瀏覽器不支援直接開啟相機，請改用右側「上傳名片照片」按鈕直接拍照。');
         return;
       }
       try {
@@ -445,7 +446,7 @@
       canvas.height = video.videoHeight || 720;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
       stopCamera();
       displayAndScanImage(dataUrl);
     }
@@ -460,6 +461,7 @@
       event.target.value = '';
     }
 
+    // 針對繁體中文筆畫優化的影像前處理與 Tesseract Worker
     async function displayAndScanImage(imageSrc) {
       const preview = document.getElementById('previewImage');
       preview.src = imageSrc;
@@ -472,46 +474,98 @@
       loading.classList.remove('hidden');
 
       try {
-        const processedDataUrl = await preprocessImage(imageSrc);
-        const result = await Tesseract.recognize(processedDataUrl, 'chi_tra+eng', {
-          logger: m => {
-            if (m.status === 'recognizing text') {
-              statusText.textContent = '正在辨識名片文字 (繁體中文 / 英文)...';
-              progressText.textContent = Math.round(m.progress * 100) + '%';
-            } else {
-              statusText.textContent = '載入語言辨識庫中...';
-            }
-          }
-        });
+        statusText.textContent = '正在優化影像解析度與對比...';
+        progressText.textContent = '準備中';
+        const processedDataUrl = await preprocessImageForChinese(imageSrc);
 
-        const rawText = result.data.text;
-        document.getElementById('rawOcrText').value = rawText;
-        autoFillFieldsFromText(rawText);
+        if (!ocrWorker) {
+          statusText.textContent = '正在下載繁體中文 + 英文辨識字庫...';
+          ocrWorker = await Tesseract.createWorker(['chi_tra', 'eng'], 1, {
+            langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+            logger: m => {
+              if (m.status === 'loading language traineddata') {
+                statusText.textContent = '下載繁體中文字庫中 (首次約需 5-10 秒)...';
+                progressText.textContent = Math.round((m.progress || 0) * 100) + '%';
+              } else if (m.status === 'recognizing text') {
+                statusText.textContent = '正在辨識繁體中文與英文內容...';
+                progressText.textContent = Math.round((m.progress || 0) * 100) + '%';
+              }
+            }
+          });
+
+          // 設定繁體中文與英文混合版面辨識參數
+          await ocrWorker.setParameters({
+            tessedit_pageseg_mode: '6', // 假設為單一均勻文字區塊，適合名片排版
+            preserve_interword_spaces: '1'
+          });
+        }
+
+        const { data: { text } } = await ocrWorker.recognize(processedDataUrl);
+
+        // 清理繁體中文字符之間多餘的辨識空格（例如「陳 大 文」->「陳大文」），同時保留英文單字間空格
+        const cleanedText = cleanChineseSpacing(text);
+        document.getElementById('rawOcrText').value = cleanedText;
+        autoFillFieldsFromText(cleanedText);
         showToast('名片辨識完成！請確認右側欄位內容');
       } catch (err) {
-        console.error(err);
-        alert('文字辨識發生錯誤，請重新拍攝清晰照片或手動輸入。');
+        console.error('OCR Error:', err);
+        // 若 Worker 發生異常則重置以便下次重試
+        if (ocrWorker) {
+          try { await ocrWorker.terminate(); } catch (e) {}
+          ocrWorker = null;
+        }
+        alert('繁體中文辨識連線逾時或發生錯誤，請檢查網路連線後再試一次。');
       } finally {
         loading.classList.add('hidden');
       }
     }
 
-    function preprocessImage(src) {
+    // 去除中文字符之間多餘的空格，但保留中英文之間或英文單字間的空格
+    function cleanChineseSpacing(raw) {
+      return raw
+        .split('\n')
+        .map(line => {
+          // 移除「中文字 + 空白 + 中文字」中間的空白
+          let s = line.replace(/([\u4e00-\u9fa5])\s+(?=[\u4e00-\u9fa5])/g, '$1');
+          return s.trim();
+        })
+        .filter(l => l.length > 0)
+        .join('\n');
+    }
+
+    // 針對繁體中文細筆畫強化的影像放大與灰階對比處理
+    function preprocessImageForChinese(src) {
       return new Promise((resolve) => {
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const scale = img.width < 1200 ? 1.5 : 1;
-          canvas.width = img.width * scale;
-          canvas.height = img.height * scale;
+          // 確保寬度至少達到 1800px，讓繁體中文小字筆畫清晰不糊
+          const targetMinWidth = 1800;
+          const scale = img.width < targetMinWidth ? (targetMinWidth / img.width) : 1;
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+
           const ctx = canvas.getContext('2d');
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
           const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           const d = imgData.data;
+
+          // 計算平均亮度以自動決定是否反轉深色底名片
+          let totalLum = 0;
+          for (let i = 0; i < d.length; i += 16) {
+            totalLum += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+          }
+          const avgLum = totalLum / (d.length / 16);
+          const isDarkBg = avgLum < 110;
+
           for (let i = 0; i < d.length; i += 4) {
-            const gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-            const contrast = ((gray - 128) * 1.25) + 128;
+            let gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+            if (isDarkBg) gray = 255 - gray; // 深色背景自動反轉為白底黑字
+            // 溫和對比增強 (1.18)，避免吃掉繁體中文細筆畫
+            const contrast = ((gray - 128) * 1.18) + 128;
             const val = Math.max(0, Math.min(255, contrast));
             d[i] = d[i + 1] = d[i + 2] = val;
           }
@@ -539,8 +593,8 @@
       const mobileRegex = /(09\d{2}[-\s]?\d{3}[-\s]?\d{3}|\+?886[-\s]?9\d{2}[-\s]?\d{3}[-\s]?\d{3})/;
       const phoneRegex = /(\(?\d{2,4}\)?[-\s]?\d{3,4}[-\s]?\d{3,4}(\s*(#|ext|分機)\.?\s*\d+)?)/i;
 
-      const titleKeywords = /(總經理|副總|協理|經理|副理|主任|專員|工程師|設計師|顧問|董事|執行長|負責人|業務|代表|CEO|CTO|CFO|COO|Manager|Director|Engineer|Specialist|Supervisor|President|VP|Sales|Consultant)/i;
-      const companyKeywords = /(公司|集團|企業|銀行|事務所|工作室|學院|協會|醫院|Co\.|Ltd|Inc|Corp|Corporation|Limited|Group|Enterprise)/i;
+      const titleKeywords = /(總經理|副總|協理|經理|副理|主任|專員|工程師|設計師|顧問|董事|執行長|負責人|業務|代表|廠長|課長|組長|特助|秘書|CEO|CTO|CFO|COO|Manager|Director|Engineer|Specialist|Supervisor|President|VP|Sales|Consultant)/i;
+      const companyKeywords = /(公司|集團|企業|銀行|事務所|工作室|學院|協會|醫院|工廠|實業|科技|國際|貿易|Co\.|Ltd|Inc|Corp|Corporation|Limited|Group|Enterprise)/i;
       const addressKeywords = /(市|縣|區|鄉|鎮|路|街|段|巷|弄|號|樓|室|Road|Rd\.|Street|St\.|Ave|Floor|Fl\.|Taiwan|Taipei|Taichung|Kaohsiung)/i;
 
       const unmatchedLines = [];
@@ -570,7 +624,7 @@
           mobile = line.match(mobileRegex)[0];
           return;
         }
-        if (!officePhone && (/(tel|電話|專線|t[:：])/i.test(line) || phoneRegex.test(line))) {
+        if (!officePhone && (/(tel|電話|專線|總機|t[:：])/i.test(line) || phoneRegex.test(line))) {
           const m = line.match(phoneRegex);
           if (m) {
             officePhone = m[0];
@@ -592,9 +646,11 @@
         unmatchedLines.push(line);
       });
 
+      // 優先挑選包含中文字的短行作為姓名
       if (!name && unmatchedLines.length > 0) {
-        const candidate = unmatchedLines.find(l => l.length >= 2 && l.length <= 24 && !/\d{4}/.test(l));
-        if (candidate) name = candidate;
+        const chineseNameCandidate = unmatchedLines.find(l => /[\u4e00-\u9fa5]{2,4}/.test(l) && l.length <= 20 && !/\d/.test(l));
+        const fallbackCandidate = unmatchedLines.find(l => l.length >= 2 && l.length <= 24 && !/\d{4}/.test(l));
+        name = chineseNameCandidate || fallbackCandidate || '';
       }
 
       document.getElementById('field_company').value = company;
